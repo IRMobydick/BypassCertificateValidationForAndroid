@@ -1,0 +1,28 @@
+Usage:
+
+SendGET:
+			
+Hashtable<String,String> headers = new Hashtable<String,String>();
+String url = "https://x.x.x.x/BypassSSLCerficicate/test.php";
+headers.put("User-Agent", "BypassSSLCerficicate 1.1");
+BypassSSLCerficicate bug = BypassSSLCerficicate.getInstance(true);
+String content = bug.sendGET(url, headers);
+			
+SendPOST:
+				
+Hashtable<String,String> headers = new Hashtable<String,String>();
+String url = "https://x.x.x.x/BypassSSLCerficicate/test.php";
+headers.put("User-Agent", "BypassSSLCerficicate 1.1");
+Hashtable<String,String> params = new Hashtable<String,String>();
+params.put("name", "you");
+BypassSSLCerficicate bug = BypassSSLCerficicate.getInstance(true);
+String content = bug.sendPOST(url, headers, params);
+			
+SendJSON:
+			
+Hashtable<String,String> headers = new Hashtable<String,String>();
+String url = "https://x.x.x.x/BypassSSLCerficicate/test.php";
+headers.put("User-Agent", "BypassSSLCerficicate 1.1");
+String json = "{\"key\":\"value\"}";
+BypassSSLCerficicate bug = BypassSSLCerficicate.getInstance(true);
+String content = bug.sendJSON(url, headers, json);
