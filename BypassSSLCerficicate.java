@@ -1,9 +1,9 @@
 package com.jheto.xekri.util;
 
+import android.annotation.SuppressLint;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,6 +12,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -20,7 +21,12 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 /*
+ * https://github.com/JhetoX/BypassCertificateValidationForAndroid
+ * 
  * This class provides connections to HTTPS service with invalid certificates and standard HTTP services, 
  * contains 3 common methods for service consumption, GET, POST and JSON.
  * 
@@ -57,10 +63,10 @@ import javax.net.ssl.X509TrustManager;
 public class BypassSSLCerficicate {
 
 	private boolean enableAllCertificates = false;
-	
+
 	private BypassSSLCerficicate(){
 	}
-	
+
 	/*
 	 * Crea una instancia de la clase
 	 * 
@@ -72,7 +78,8 @@ public class BypassSSLCerficicate {
 		cls.enableAllCertificates = enableAllCertificates;
 		return cls;
 	}
-	
+
+	@SuppressLint("TrulyRandom")
 	private void enableAllCertificates(){
 		try{
 			X509TrustManager trustManager = new X509TrustManager() {
@@ -88,11 +95,11 @@ public class BypassSSLCerficicate {
 				}
 			};
 			TrustManager[] trustAllCerts = new TrustManager[] {trustManager};
-	
+
 			SSLContext sc = SSLContext.getInstance("SSL");
 			sc.init(null, trustAllCerts, new java.security.SecureRandom());
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-	
+
 			HostnameVerifier allHostsValid = new HostnameVerifier() {
 				@Override
 				public boolean verify(String hostname, SSLSession session) {
@@ -100,12 +107,12 @@ public class BypassSSLCerficicate {
 				}
 			};
 			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-						
+
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 	}
-	
+
 	private HttpURLConnection getURLConnection(String urlStr, boolean isGET) throws MalformedURLException, IOException {
 		if(enableAllCertificates) enableAllCertificates();
 		URL url = new URL(urlStr);
@@ -119,7 +126,7 @@ public class BypassSSLCerficicate {
 		else conn.setRequestMethod("POST");
 		return conn;
 	}
-	
+
 	private HttpURLConnection addHeaders(HttpURLConnection conn, Hashtable<String,String> params){
 		if(conn != null && params != null && params.size()>0){
 			try{
@@ -133,7 +140,7 @@ public class BypassSSLCerficicate {
 		}
 		return conn;
 	}
-	
+
 	private void addPostVars(HttpURLConnection conn, Hashtable<String,String> params){
 		try{
 			String method = conn.getRequestMethod();
@@ -157,7 +164,7 @@ public class BypassSSLCerficicate {
 			}
 		}catch(Exception e){}
 	}
-	
+
 	private void addPostJson(HttpURLConnection conn, String json, boolean useUrlEncode){
 		try{
 			String method = conn.getRequestMethod();
@@ -170,18 +177,18 @@ public class BypassSSLCerficicate {
 			}
 		}catch(Exception e){}
 	}
-	
+
 	private String getTextContent(HttpURLConnection conn) throws MalformedURLException, IOException {
-		String content = "";
-		Reader reader = new InputStreamReader(conn.getInputStream());
-		while (true) {
-			int ch = reader.read();
-			if (ch==-1) break;
-			content += (char)ch;
+		StringBuilder content = new StringBuilder();
+		InputStream is = conn.getInputStream();
+		byte[] bytes = new byte[1024];
+		int numRead = 0;
+		while ((numRead = is.read(bytes)) >= 0) {
+			content.append(new String(bytes, 0, numRead));
 		}
-		return content;
+		return content.toString();
 	}
-	
+
 	/*
 	 * This method lets you create a url with parameters such GET
 	 * 
@@ -206,7 +213,7 @@ public class BypassSSLCerficicate {
 		}catch(Exception e){}
 		return outUrl;
 	}
-	
+
 	/*
 	 * This method allows to send a request type JSON
 	 * 
@@ -229,7 +236,7 @@ public class BypassSSLCerficicate {
 		}
 		return content;
 	}
-	
+
 	/*
 	 * This method allows to send a request type POST
 	 * 
@@ -252,7 +259,7 @@ public class BypassSSLCerficicate {
 		}
 		return content;
 	}
-	
+
 	/*
 	 * This method allows to send a request type GET
 	 * 
@@ -272,4 +279,38 @@ public class BypassSSLCerficicate {
 		return content;
 	}
 	
+	//***************************************************************************
+	
+	public static String[] decodeArray(String source){
+        try{
+        	JSONArray o = new JSONArray(source);
+            int length = o.length();
+            if(length>0){
+                String[] array = new String[length];
+                for(int i=0; i<length; i++){
+                    array[i] =o.getString(i);
+                }
+                return array;
+            }
+        }catch(Exception e){}
+        return null;
+    }
+    
+    public static java.util.Hashtable<String, Object> decodeHashtable(String source){
+        java.util.Hashtable<String, Object> table = new java.util.Hashtable<String, Object>(0);
+        try{
+            JSONObject o = new JSONObject(source);
+            int length = o.length();
+            if(length > 0){
+            	Iterator<Object> en =  o.keys();
+            	while(en.hasNext()){
+                    String key = en.next().toString();
+                    String value = o.get(key)+"";
+                    table.put(key, value);
+                }
+            }
+        }catch(Exception e){}
+        return table;
+    }
+
 }
