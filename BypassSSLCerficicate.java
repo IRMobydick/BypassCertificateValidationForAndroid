@@ -117,13 +117,16 @@ public class BypassSSLCerficicate {
 		if(enableAllCertificates) enableAllCertificates();
 		URL url = new URL(urlStr);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setInstanceFollowRedirects(true);
 		conn.setConnectTimeout(1000 * 60);
 		conn.setReadTimeout(1000 * 60);
-		conn.setDoOutput(true);
-		conn.setDoInput(true);
 		conn.setUseCaches(false);
+		conn.setDoInput(true);
 		if(isGET) conn.setRequestMethod("GET");
-		else conn.setRequestMethod("POST");
+		else {
+			conn.setDoOutput(true);
+			conn.setRequestMethod("POST");
+		}
 		return conn;
 	}
 
@@ -136,7 +139,9 @@ public class BypassSSLCerficicate {
 					String value = params.get(key);
 					if(key != null && value != null) conn.setRequestProperty(key, value);
 				}
-			}catch(Exception e){}
+			}catch(Exception e){
+				Log.e("Exception", e.toString());
+			}
 		}
 		return conn;
 	}
@@ -180,11 +185,15 @@ public class BypassSSLCerficicate {
 
 	private String getTextContent(HttpURLConnection conn) throws MalformedURLException, IOException {
 		StringBuilder content = new StringBuilder();
-		InputStream is = conn.getInputStream();
-		byte[] bytes = new byte[1024];
-		int numRead = 0;
-		while ((numRead = is.read(bytes)) >= 0) {
-			content.append(new String(bytes, 0, numRead));
+		
+		int code = conn.getResponseCode();
+		if(code == 200){
+			InputStream is = conn.getInputStream();
+			byte[] bytes = new byte[1024];
+			int numRead = 0;
+			while ((numRead = is.read(bytes)) >= 0) {
+				content.append(new String(bytes, 0, numRead));
+			}
 		}
 		return content.toString();
 	}
