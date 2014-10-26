@@ -371,19 +371,48 @@ public class BypassSSLCerficicate {
 		return content;
 	}
 	
-	public static void asynchSendJSON(boolean usesBypass, String url, Hashtable<String,String> headers, String json, IBypassSSLCerficicate callback){
+	/*
+	 * This method allows to send a request type JSON
+	 * 
+	 * Params: 
+	 * UsesBypass: enables or disables SSLCerficicate validation
+	 * Ulr: url of service
+	 * Headers: headers with the request will be made
+	 * Json: body json for send
+	 * */
+	public static AsyncTask<Object, Object, Object> asynchSendJSON(boolean usesBypass, String url, Hashtable<String,String> headers, String json, IBypassSSLCerficicate callback){
 		WebQuery query = new WebQuery("sendJSON", usesBypass, url, headers, null, json, callback);
 		query.execute(new Object[]{});
+		return query;
 	}
 	
-	public static void asynchSendPOST(boolean usesBypass, String url, Hashtable<String,String> headers, Hashtable<String,String> params, IBypassSSLCerficicate callback){
+	/*
+	 * This method allows to send a request type POST
+	 * 
+	 * Params: 
+	 * UsesBypass: enables or disables SSLCerficicate validation
+	 * Ulr: url of service
+	 * Headers: headers with the request will be made
+	 * params: parameters that will be sent by POST 
+	 * */
+	public static AsyncTask<Object, Object, Object> asynchSendPOST(boolean usesBypass, String url, Hashtable<String,String> headers, Hashtable<String,String> params, IBypassSSLCerficicate callback){
 		WebQuery query = new WebQuery("sendPOST", usesBypass, url, headers, params, null, callback);
 		query.execute(new Object[]{});
+		return query;
 	}
 	
-	public static void asynchSendGET(boolean usesBypass, String url, Hashtable<String,String> headers, IBypassSSLCerficicate callback){
+	/*
+	 * This method allows to send a request type GET
+	 * 
+	 * Params: 
+	 * UsesBypass: enables or disables SSLCerficicate validation
+	 * Ulr: url of service
+	 * Headers: headers with the request will be made
+	 * */
+	public static AsyncTask<Object, Object, Object> asynchSendGET(boolean usesBypass, String url, Hashtable<String,String> headers, IBypassSSLCerficicate callback){
 		WebQuery query = new WebQuery("sendGET", usesBypass, url, headers, null, null, callback);
 		query.execute(new Object[]{});
+		return query;
 	}
 	
 	//****************************************************************************************************************************
@@ -489,6 +518,8 @@ public class BypassSSLCerficicate {
     }
 
     //****************************************************************************************************************************
+
+    //XML decoder comming soon ...
     
     //****************************************************************************************************************************
     
