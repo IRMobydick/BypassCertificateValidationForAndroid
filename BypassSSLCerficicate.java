@@ -1,11 +1,17 @@
 package com.jheto.xekri.util;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Authenticator;
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.cert.CertificateException;
@@ -62,6 +68,33 @@ import org.json.JSONObject;
  * */
 public class BypassSSLCerficicate {
 
+	private static CookieManager cookieManager = new CookieManager();
+	
+	public static void setCookieManager(){
+		CookieHandler.setDefault(cookieManager);
+	}
+	
+	public static void resetCookieManager(){
+		cookieManager = new CookieManager();
+		CookieHandler.setDefault(cookieManager);
+	}
+	
+	public static void setBasicAuthentication(final String user, final String pass){
+		boolean containsAuthentication = (user != null && user.length()>0 && pass != null)? true:false;
+		try{
+			if(containsAuthentication){
+				Authenticator.setDefault(new Authenticator() {
+				     protected PasswordAuthentication getPasswordAuthentication() {
+				    	 return new PasswordAuthentication(user, pass.toCharArray());
+				     }
+				});
+			}
+			else{
+				Authenticator.setDefault(null);
+			}
+		}catch(Exception e){}
+	}
+	
 	private boolean enableAllCertificates = false;
 
 	private BypassSSLCerficicate(){
