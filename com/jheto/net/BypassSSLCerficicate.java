@@ -1,6 +1,7 @@
-package com.jheto.xekri.util;
+package com.jheto.net;
 
 import android.annotation.SuppressLint;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import java.io.DataOutputStream;
@@ -70,17 +71,43 @@ public class BypassSSLCerficicate {
 
 	private static CookieManager cookieManager = new CookieManager();
 	
-	public static void setCookieManager(){
-		CookieHandler.setDefault(cookieManager);
+	/*
+	 * This method enables cookie support.
+	 * */
+	public static void registerCookieManager(){
+		try{
+			CookieHandler.setDefault(cookieManager);
+		}catch(Exception e){}
 	}
 	
-	public static void resetCookieManager(){
-		cookieManager = new CookieManager();
-		CookieHandler.setDefault(cookieManager);
+	/*
+	 * This method disables cookie support.
+	 * */
+	public static void unregisterCookieManager(){
+		try{
+			CookieHandler.setDefault(null);
+		}catch(Exception e){}
 	}
 	
+	/*
+	 * This method cleans cookie manager.
+	 * */
+	public static void cleanCookieManager(){
+		try{
+			cookieManager = new CookieManager();
+			CookieHandler.setDefault(cookieManager);
+		}catch(Exception e){}
+	}
+	
+	/*
+	 * This method set a BasicAuthentication.
+	 * 
+	 * Params: 
+	 * User: username  
+	 * Pass: password
+	 * */
 	public static void setBasicAuthentication(final String user, final String pass){
-		boolean containsAuthentication = (user != null && user.length()>0 && pass != null)? true:false;
+		boolean containsAuthentication = (user != null && user.length()>0 && pass != null && pass.length()>0)? true:false;
 		try{
 			if(containsAuthentication){
 				Authenticator.setDefault(new Authenticator() {
@@ -89,22 +116,45 @@ public class BypassSSLCerficicate {
 				     }
 				});
 			}
-			else{
-				Authenticator.setDefault(null);
-			}
+			else removeBasicAuthentication();
 		}catch(Exception e){}
 	}
 	
+	/*
+	 * This method removes a Basic Authentication
+	 * */
+	public static void removeBasicAuthentication(){
+		try{
+			Authenticator.setDefault(null);
+		}catch(Exception e){}
+	}
+	
+	/*
+	 * This method return a http response message.
+	 * */
+	public String getResponseMessage(){
+		return responseMessage;
+	} 
+	
+	/*
+	 * This method return a http response code.
+	 * */
+	public int getResponseCode(){
+		return responseCode;
+	}
+	
 	private boolean enableAllCertificates = false;
-
+	private String responseMessage = null;
+	private int responseCode = 0;
+	
 	private BypassSSLCerficicate(){
 	}
 
 	/*
-	 * Crea una instancia de la clase
+	 * Create an instance of the class
 	 * 
 	 * Params:
-	 * enableAllCertificates: para conexiones por https true activa el bypass con certificados no validos
+	 * enableAllCertificates: true for https connections with active bypass invalid certificates
 	 * */
 	public static BypassSSLCerficicate getInstance(boolean enableAllCertificates){
 		BypassSSLCerficicate cls = new BypassSSLCerficicate();
@@ -218,9 +268,9 @@ public class BypassSSLCerficicate {
 
 	private String getTextContent(HttpURLConnection conn) throws MalformedURLException, IOException {
 		StringBuilder content = new StringBuilder();
-		
-		int code = conn.getResponseCode();
-		if(code == 200){
+		responseMessage = conn.getResponseMessage();
+		responseCode = conn.getResponseCode();
+		if(responseCode == 200){
 			InputStream is = conn.getInputStream();
 			byte[] bytes = new byte[1024];
 			int numRead = 0;
@@ -265,7 +315,7 @@ public class BypassSSLCerficicate {
 	 * Json: body json for send
 	 * */
 	public String sendJSON(String url, Hashtable<String,String> headers, String json){
-		String content = "";
+		String content = null;
 		try{
 			if(json.length()>0){
 				HttpURLConnection conn = getURLConnection(url, false);
@@ -274,7 +324,7 @@ public class BypassSSLCerficicate {
 				content = getTextContent(conn);
 			}
 		}catch(Exception e){
-			content = "";
+			content = null;
 		}
 		return content;
 	}
@@ -288,7 +338,7 @@ public class BypassSSLCerficicate {
 	 * params: parameters that will be sent by POST 
 	 * */
 	public String sendPOST(String url, Hashtable<String,String> headers, Hashtable<String,String> params){
-		String content = "";
+		String content = null;
 		try{
 			if(params.size()>0){
 				HttpURLConnection conn = getURLConnection(url, false);
@@ -297,7 +347,7 @@ public class BypassSSLCerficicate {
 				content = getTextContent(conn);
 			}
 		}catch(Exception e){
-			content = "";
+			content = null;
 		}
 		return content;
 	}
@@ -310,20 +360,101 @@ public class BypassSSLCerficicate {
 	 * Headers: headers with the request will be made
 	 * */
 	public String sendGET(String url, Hashtable<String,String> headers){
-		String content = "";
+		String content = null;
 		try{
 			HttpURLConnection conn = getURLConnection(url, true);
 			if(headers != null && headers.size()>0) addHeaders(conn, headers);
 			content = getTextContent(conn);
 		}catch(Exception e){
-			content = "";
+			content = null;
 		}
 		return content;
 	}
 	
-	//***************************************************************************
+	public static void asynchSendJSON(boolean usesBypass, String url, Hashtable<String,String> headers, String json, IBypassSSLCerficicate callback){
+		WebQuery query = new WebQuery("sendJSON", usesBypass, url, headers, null, json, callback);
+		query.execute(new Object[]{});
+	}
 	
-	public static String[] decodeArray(String source){
+	public static void asynchSendPOST(boolean usesBypass, String url, Hashtable<String,String> headers, Hashtable<String,String> params, IBypassSSLCerficicate callback){
+		WebQuery query = new WebQuery("sendPOST", usesBypass, url, headers, params, null, callback);
+		query.execute(new Object[]{});
+	}
+	
+	public static void asynchSendGET(boolean usesBypass, String url, Hashtable<String,String> headers, IBypassSSLCerficicate callback){
+		WebQuery query = new WebQuery("sendGET", usesBypass, url, headers, null, null, callback);
+		query.execute(new Object[]{});
+	}
+	
+	//****************************************************************************************************************************
+	
+	static class WebQuery extends AsyncTask<Object, Object, Object> {
+
+		private Hashtable<String,String> headers = null;
+		private Hashtable<String,String> params = null;
+		private IBypassSSLCerficicate callback = null;
+		private boolean usesBypass = false;
+		private String method = null;
+		private String json = null;
+		private String url = null;
+		
+		WebQuery(String method, boolean usesBypass, String url, Hashtable<String,String> headers, Hashtable<String,String> params, String json, IBypassSSLCerficicate callback){
+			this.url = url;
+			this.json = json;
+			this.params = params;
+			this.headers = headers;
+			this.callback = callback;
+			
+			this.method = method;
+			this.usesBypass = usesBypass;
+		}
+		
+		@Override
+		protected Object doInBackground(Object... arg) {
+			String content = null;
+			String message = null;
+			int code = -1;
+			try{
+				BypassSSLCerficicate bypass = BypassSSLCerficicate.getInstance(usesBypass);
+				if(method != null){
+					if(method.equals("sendJSON")){
+						content = bypass.sendJSON(url, headers, json);
+						message = bypass.getResponseMessage();
+						code = bypass.getResponseCode();
+					}
+					else if(method.equals("sendPOST")){
+						content = bypass.sendPOST(url, headers, params);
+						message = bypass.getResponseMessage();
+						code = bypass.getResponseCode();
+					}
+					else if(method.equals("sendGET")){
+						content = bypass.sendGET(url, headers);
+						message = bypass.getResponseMessage();
+						code = bypass.getResponseCode();
+					}
+				}
+			}catch(Exception e){
+				content = null;
+				message = null;
+				code = -1;
+			}
+			return new Object[]{code, message, content};
+		}
+		
+		protected void onPostExecute (Object result){
+			if(result != null && result instanceof Object[] && callback != null){
+				Object[] data = (Object[])result;
+				String content = (data[2] != null)? data[2].toString():null;
+				String message = (data[1] != null)? data[1].toString():null;
+				int code = Integer.parseInt(data[0].toString());
+				callback.response(code, message, content);
+			}
+		}
+	}
+
+	//****************************************************************************************************************************
+	
+	public static String[] decodeJsonArray(String source){
         try{
         	JSONArray o = new JSONArray(source);
             int length = o.length();
@@ -338,7 +469,7 @@ public class BypassSSLCerficicate {
         return null;
     }
     
-    public static java.util.Hashtable<String, Object> decodeHashtable(String source){
+    public static java.util.Hashtable<String, Object> decodeJsonHashtable(String source){
         java.util.Hashtable<String, Object> table = new java.util.Hashtable<String, Object>(0);
         try{
             JSONObject o = new JSONObject(source);
@@ -351,8 +482,14 @@ public class BypassSSLCerficicate {
                     table.put(key, value);
                 }
             }
-        }catch(Exception e){}
+        }catch(Exception e){
+        	table = new java.util.Hashtable<String, Object>(0);
+        }
         return table;
     }
 
+    //****************************************************************************************************************************
+    
+    //****************************************************************************************************************************
+    
 }
