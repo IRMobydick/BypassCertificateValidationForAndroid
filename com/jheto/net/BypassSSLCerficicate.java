@@ -143,6 +143,17 @@ public class BypassSSLCerficicate {
 		return responseCode;
 	}
 	
+	/*
+	 * This method returns a default headers
+	 * */
+	public static Hashtable<String,String> getDefaultHeaders(){
+		Hashtable<String,String> headers = new Hashtable<String,String>();
+		headers.put("User-Agent", "BypassSSLCerficicate 1.0");
+		headers.put("Accept-Encoding", "gzip, deflate");
+		headers.put("Accept", "*/*");
+		return headers;
+	}
+	
 	private boolean enableAllCertificates = false;
 	private String responseMessage = null;
 	private int responseCode = 0;
