@@ -1,12 +1,29 @@
 Usage:
 
+To usage Cookies
+
+BypassSSLCerficicate.cleanCookieManager();
+BypassSSLCerficicate.registerCookieManager();
+BypassSSLCerficicate.unregisterCookieManager();
+
+
+
+To usage BasicAuthentication
+
+BypassSSLCerficicate.setBasicAuthentication(user, pass);
+BypassSSLCerficicate.removeBasicAuthentication();
+
+
+
+Synchronous calls
+
 SendGET:
 			
 Hashtable<String,String> headers = new Hashtable<String,String>();
 String url = "https://x.x.x.x/BypassSSLCerficicate/test.php";
 headers.put("User-Agent", "BypassSSLCerficicate 1.1");
-BypassSSLCerficicate bug = BypassSSLCerficicate.getInstance(true);
-String content = bug.sendGET(url, headers);
+BypassSSLCerficicate bypass = BypassSSLCerficicate.getInstance(true);
+String content = bypass.sendGET(url, headers);
 			
 SendPOST:
 				
@@ -15,8 +32,8 @@ String url = "https://x.x.x.x/BypassSSLCerficicate/test.php";
 headers.put("User-Agent", "BypassSSLCerficicate 1.1");
 Hashtable<String,String> params = new Hashtable<String,String>();
 params.put("name", "you");
-BypassSSLCerficicate bug = BypassSSLCerficicate.getInstance(true);
-String content = bug.sendPOST(url, headers, params);
+BypassSSLCerficicate bypass = BypassSSLCerficicate.getInstance(true);
+String content = bypass.sendPOST(url, headers, params);
 			
 SendJSON:
 			
@@ -24,5 +41,45 @@ Hashtable<String,String> headers = new Hashtable<String,String>();
 String url = "https://x.x.x.x/BypassSSLCerficicate/test.php";
 headers.put("User-Agent", "BypassSSLCerficicate 1.1");
 String json = "{\"key\":\"value\"}";
-BypassSSLCerficicate bug = BypassSSLCerficicate.getInstance(true);
-String content = bug.sendJSON(url, headers, json);
+BypassSSLCerficicate bypass = BypassSSLCerficicate.getInstance(true);
+String content = bypass.sendJSON(url, headers, json);
+
+
+
+Asynchronous calls
+
+SendGET:
+
+Hashtable<String,String> headers = new Hashtable<String,String>();
+String url = "https://x.x.x.x/BypassSSLCerficicate/test.php";
+headers.put("User-Agent", "BypassSSLCerficicate 1.1");
+AsyncTask<Object, Object, Object> task = BypassSSLCerficicate.asynchSendGET(true, url, headers, new IBypassSSLCerficicate(){
+	@Override
+	public void response(int responseCode, String responseMessage, String content) {
+	}
+});
+
+SendPOST:
+
+Hashtable<String,String> headers = new Hashtable<String,String>();
+String url = "https://x.x.x.x/BypassSSLCerficicate/test.php";
+headers.put("User-Agent", "BypassSSLCerficicate 1.1");
+Hashtable<String,String> params = new Hashtable<String,String>();
+params.put("name", "you");
+AsyncTask<Object, Object, Object> task = BypassSSLCerficicate.asynchSendPOST(true, url, headers, params, new IBypassSSLCerficicate(){
+	@Override
+	public void response(int responseCode, String responseMessage, String content) {
+	}
+});
+
+SendJSON:
+
+Hashtable<String,String> headers = new Hashtable<String,String>();
+String url = "https://x.x.x.x/BypassSSLCerficicate/test.php";
+headers.put("User-Agent", "BypassSSLCerficicate 1.1");
+String json = "{\"key\":\"value\"}";
+AsyncTask<Object, Object, Object> task = BypassSSLCerficicate.asynchSendJSON(true, url, headers, json, new IBypassSSLCerficicate(){
+	@Override
+	public void response(int responseCode, String responseMessage, String content) {
+	}
+});
